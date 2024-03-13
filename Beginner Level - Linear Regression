@@ -1,0 +1,131 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+bos_df = pd.read_csv("/content/BostonHousing.csv")
+print(bos_df.head())
+df = bos_df.dropna()
+# Verify that there are no missing values
+print(df.isnull().sum())
+bos_df.shape
+bos_df.describe()
+bos_df.info()
+bos_df[bos_df.duplicated()==True]
+bos_df['medv'].head(10)
+bos_df['medv'].tail(10)
+bos_df['medv'].describe()
+bos_df['medv'].isna().sum()
+corr=bos_df.corr()
+corr.tail(1)
+import matplotlib.pyplot as plt
+def pllot(x, y, color='blue'):
+    plt.scatter(bos_df[x], bos_df[y], color=color)
+    plt.xlabel(x)
+    plt.ylabel(y)
+    plt.title("Scatter plot of " + x + " and " + y)
+    plt.show()
+x_names = bos_df.columns[0:13]
+y_name = bos_df.columns[-1]
+for i in x_names:
+    pllot(i, y_name, color='red')  # Change 'red' to any color you want
+sns.boxplot(x='medv',data=bos_df)
+bos_df['medv'].describe()
+print(np.where(bos_df['medv']>50))
+sns.scatterplot(bos_df['medv'])
+plt.show()
+from sklearn import preprocessing
+scale = preprocessing.StandardScaler()
+bos_df = scale.fit_transform(bos_df)
+columns=['CRIM','ZN','INDUS','CHAS','NOX','RM','AGE','DIS','RAD','TAX','PTRATIO','B','LSTAT','MEDV']
+df = pd.DataFrame(bos_df,columns=columns)
+df
+np.round(df['MEDV'],3)
+df['MEDV'].describe()
+sns.boxplot(x=df['MEDV'])
+#find the limits
+upper_limit = df['MEDV'].mean()+3*df['MEDV'].std()
+lower_limit = df['MEDV'].mean()-3*df['MEDV'].std()
+print("upper limit: ", upper_limit)
+print("lower limit: ", lower_limit)
+df.loc[(df['MEDV'] > upper_limit) | (df['MEDV'] < lower_limit)]
+q1 = df['MEDV'].quantile(0.25)
+q3 = df['MEDV'].quantile(0.75)
+iqr = q3-q1
+q1, q3, iqr
+upper_limit = q3 + (1.5*iqr)
+lower_limit = q1 - (1.5*iqr)
+lower_limit, upper_limit
+sns.boxplot(x=df['MEDV'])
+df.loc[(df['MEDV'] > upper_limit) | (df['MEDV'] < lower_limit)]
+new_df = df.loc[(df['MEDV'] < upper_limit) & (df['MEDV'] > lower_limit)]
+print('before removing outliers: ', len(df))
+print('after removing outliers: ', len(new_df))
+print('outliers: ', len(df)-len(new_df))
+sns.boxplot(x=new_df['MEDV'])
+new_df = df.copy()
+new_df.loc[(new_df['MEDV']>upper_limit),'MEDV'] = upper_limit
+new_df.loc[(new_df['MEDV']<lower_limit),'MEDV'] = lower_limit
+sns.boxplot(x=new_df['MEDV'])
+sns.scatterplot(new_df['MEDV'])
+new_df
+new_df.info()
+new_df.isnull().sum()
+new_df.dropna(inplace=True)
+new_df.describe()
+X = new_df.drop("MEDV", axis=1)
+y = new_df['MEDV']
+X.shape
+y.shape
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2, random_state= 21)
+print("Shape of the train dataset features")
+print(X_train.shape)
+print("Shape of the test dataset features")
+print(X_test.shape)
+print("Shape of train set target")
+print(y_train.shape)
+print("Shape of test set target")
+print(y_test.shape)
+from sklearn.linear_model import LinearRegression
+model_linreg = LinearRegression()
+model_linreg.fit(X_train,y_train)
+print("The intercept for this Multiple Linear Regression model on the boston dataset is",
+     model_linreg.intercept_)
+y_test_pred = model_linreg.predict(X_test)
+print(y_test_pred)
+actual_vs_pred_df = pd.DataFrame({'Actual': y_test, 'Predicted' : y_test_pred})
+actual_vs_pred_df.head(10)
+import matplotlib.pyplot as plt
+import seaborn as sns
+# Distribution of actual and predicted values
+sns.histplot(data=actual_vs_pred_df, x="Actual", color="blue", alpha=0.5, label="Actual")
+sns.histplot(data=actual_vs_pred_df, x="Predicted", color="red", alpha=0.5, label="Predicted")
+plt.xlabel("Value")
+plt.ylabel("Frequency")
+plt.title("Distribution of Actual and Predicted Values")
+plt.legend()
+plt.show()
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+# Calculate Mean Squared Error (MSE)
+mse = mean_squared_error(y_test, y_test_pred)
+print("Mean Squared Error (MSE):", mse)
+# Calculate Root Mean Squared Error (RMSE)
+rmse = np.sqrt(mse)
+print("Root Mean Squared Error (RMSE):", rmse)
+# Calculate Mean Absolute Error (MAE)
+mae = mean_absolute_error(y_test, y_test_pred)
+print("Mean Absolute Error (MAE):", mae)
+# Calculate Residual Plots
+residuals = y_test - y_test_pred
+# Plot Residuals vs. Predicted Values
+plt.scatter(y_test_pred, residuals)
+plt.xlabel("Predicted Values")
+plt.ylabel("Residuals")
+plt.title("Residual Plot")
+plt.show()
+# Plot Residuals vs. Actual Values
+plt.scatter(y_test, residuals)
+plt.xlabel("Actual Values")
+plt.ylabel("Residuals")
+plt.title("Residual Plot")
+plt.show()
